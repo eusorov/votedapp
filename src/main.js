@@ -11,7 +11,7 @@ const web3Connect = new Web3Connect.Core({
     walletconnect: {
       package: WalletConnectProvider, // required
       options: {
-        infuraId: "6b498bac2bd34f2ca11905148c9a144a" // required
+        infuraId: process.env.VUE_APP_INFURA // required
       }
     },
   }
