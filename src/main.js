@@ -1,5 +1,24 @@
 import Vue from 'vue'
+import Vuex from 'vuex'
 import App from './App.vue'
+
+Vue.use(Vuex)
+
+const store = new Vuex.Store({
+  state: {
+    web3: undefined,
+    provider: undefined
+  },
+
+  mutations: {
+    updateWeb3 (state, web3) {
+      state.web3 = web3;
+    },
+    updateProvider (state, provider) {
+      state.provider = provider;
+    }
+  }
+})
 
 import Web3Connect from "web3connect";
 import WalletConnectProvider from "@walletconnect/web3-provider";
@@ -24,26 +43,25 @@ Vue.mixin({
   data: function () {
     return {
       web3Connect,
-      web3
     }
   }
 })
 
-let web3;
 // subscribe to connect
 web3Connect.on("connect", (provider) => {
-  const web3Global = new Web3(provider); // add provider to web3
-  // TODO find better solution to make it global
-  // MetaMask Legacy Web3
-  window.web3 = web3Global;  
+  const web3 = new Web3(provider); // add provider to web3
+  store.commit('updateWeb3', web3)
+  store.commit('updateProvider', provider)
+
 });
 
 
 // subscribe to close
 web3Connect.on("close", () => {
-  //console.log("Web3Connect Modal Closed"); // modal has closed
+
 });
 
 new Vue({
   render: h => h(App),
+  store: store,
 }).$mount('#app')

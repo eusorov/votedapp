@@ -1,10 +1,14 @@
 <template>
   <div>
-    <div>
-      You can vote only once, choose the proposal which you want to support
+    <div class="card">
+     <div class="card-body">
+      The voting smartcontract address: <a v-bind:href="neturl+'address/'+voteAdress">{{voteAdress}}</a>
     </div>
-
-    <p />
+    </div>
+    <p/>
+    <label for="voteSelect">
+      You can vote only once, choose the proposal which you want to support
+    </label>
 
     <div id="voteSelect" class="input-group">
       <select v-model="selected" class="custom-select" id="inputGroupSelect05">
@@ -20,22 +24,22 @@
         <button
           class="btn btn-outline-primary"
           type="button"
+          :disabled = "selected.id===0 || !this.$store.state.web3"
           v-on:click="vote(selected)"
         >
           Vote
         </button>
       </div>
     </div>
-
-    <div v-if="!web3defined">
-      Please connect first with your wallet via Metamask
-    </div>
+    
     <p/>
-    <div v-if="voted" class="alert alert-info" role="alert">
-      You voted for {{ voted.name }}
-    </div>      
-    <div v-if="voteSuccessfull" class="alert alert-success" role="alert">
-      Gongratulation! You voted for {{ voted.name }}
+    <div v-if="hash" class="alert alert-success" role="alert">
+      <div>
+      You voted for {{ voted.name }}, 
+      </div>
+      <small>
+        <a v-bind:href="neturl+'tx/'+hash">tx:{{hash}}</a>
+      </small>
     </div>  
   </div>
 </template>
@@ -50,8 +54,9 @@ export default {
     return {
       selected: defaultSelect,
       voted: undefined,
-      voteSuccessfull: undefined,
-      web3defined: undefined,
+      hash: undefined,
+      neturl: undefined,
+      voteAdress : ballotAdressKoven,
       proposals: [
         defaultSelect,
         { id: 1, name: "Capital X Fund" },
@@ -60,25 +65,24 @@ export default {
       ],
     };
   },
+  created () {
+      const web3 = this.$store.state.web3;
+      web3.eth.net.getNetworkType().then((type) => {
+        this.neturl = 'https://'+type+'.etherscan.io/';
+      })
+  },
   methods: {
-    select: function (c) {
-      console.log("CHECK", c);
-    },
     vote: async function (userVote) {
-     
-      console.log("id :" + userVote.id);
-      // TODO find better solution for global variable
-      // console.log(window.web3);
-
-      if (window?.web3?.eth){
-        this.web3defined = true;        
-      }else{
-        this.web3defined = false;
-        return this.web3defined ;
+      if (!this.$store.state.web3){
+        return; 
       }
 
-      const accounts = await window.web3.eth.getAccounts();
-      const ballot = new window.web3.eth.Contract(
+      const web3 = this.$store.state.web3;
+
+      console.log("id : " + userVote.id);
+
+      const accounts = await web3.eth.getAccounts();
+      const ballot = new web3.eth.Contract(
         ballotAbi,
         ballotAdressKoven
       );
@@ -88,14 +92,10 @@ export default {
         ballot.methods
           .doVote(userVote.id)
           .send({ from: accounts[0] })
-          .on("transactionHash", function (hash) {
+          .on("transactionHash", (hash) => {
             console.log(hash);
-          })
-          .on("confirmation", function (confirmationNumber, receipt) {
-            console.log(confirmationNumber);
-            console.log(receipt);
-            // TODO should update async variable and show alert
-            this.voteSuccessfull = userVote;
+            this.hash = hash;
+            this.hashurl +=hash
           })
           .on("error", console.error);
       }
