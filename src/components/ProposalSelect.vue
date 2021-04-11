@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { ballotAbi, ballotAdressKoven } from "../smartcontractApi";
+import { ballotAbi, ballotAdressKoven, ballotAdressMainnet } from "../smartcontractAbi";
 import proposals from "../proposals";
 
 const defaultSelect = { id: 0, name: "Choose proposal ..." };
@@ -61,14 +61,8 @@ export default {
     };
   },
   created() {
-    const web3 = this.$store.state.web3;
-    if (web3) {
-      web3.eth.net
-        .getNetworkType()
-        .then((type) => {
-          this.neturl = "https://" + type + ".etherscan.io/";
-        })
-        .catch(console.error);
+    if ('kovan'===process.env.VUE_APP_USENET){
+      this.neturl = "https://kovan.etherscan.io/";
     }else{
       this.neturl = "https://etherscan.io/";
     }
@@ -84,7 +78,9 @@ export default {
       console.log("id : " + userVote.id);
 
       const accounts = await web3.eth.getAccounts();
-      const ballot = new web3.eth.Contract(ballotAbi, ballotAdressKoven);
+      
+      const ballotAdress = process.env.VUE_APP_USENET === 'kovan' ? ballotAdressKoven : ballotAdressMainnet
+      const ballot = new web3.eth.Contract(ballotAbi, ballotAdress);
 
       if (accounts?.length) {
         this.voted = userVote;
