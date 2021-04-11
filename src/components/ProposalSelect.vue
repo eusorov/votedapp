@@ -1,11 +1,12 @@
 <template>
   <div>
     <div class="card">
-     <div class="card-body">
-      The voting smartcontract address: <a v-bind:href="neturl+'address/'+voteAdress">{{voteAdress}}</a>
+      <div class="card-body">
+        The voting smartcontract address:
+        <a v-bind:href="neturl + 'address/' + voteAdress">{{ voteAdress }}</a>
+      </div>
     </div>
-    </div>
-    <p/>
+    <p />
     <label for="voteSelect">
       You can vote only once, choose the proposal which you want to support
     </label>
@@ -24,28 +25,27 @@
         <button
           class="btn btn-outline-primary"
           type="button"
-          :disabled = "selected.id===0 || !this.$store.state.web3"
+          :disabled="selected.id === 0 || !this.$store.state.web3"
           v-on:click="vote(selected)"
         >
           Vote
         </button>
       </div>
     </div>
-    
-    <p/>
+
+    <p />
     <div v-if="hash" class="alert alert-success" role="alert">
-      <div>
-      You voted for {{ voted.name }}, 
-      </div>
+      <div>You voted for {{ voted.name }},</div>
       <small>
-        <a v-bind:href="neturl+'tx/'+hash">tx:{{hash}}</a>
+        <a v-bind:href="neturl + 'tx/' + hash">tx:{{ hash }}</a>
       </small>
-    </div>  
+    </div>
   </div>
 </template>
 
 <script>
 import { ballotAbi, ballotAdressKoven } from "../smartcontractApi";
+import proposals from "../proposals";
 
 const defaultSelect = { id: 0, name: "Choose proposal ..." };
 export default {
@@ -56,25 +56,27 @@ export default {
       voted: undefined,
       hash: undefined,
       neturl: undefined,
-      voteAdress : ballotAdressKoven,
-      proposals: [
-        defaultSelect,
-        { id: 1, name: "Capital X Fund" },
-        { id: 2, name: "NFTstreamz.tv" },
-        { id: 3, name: "DEFI + Contract NFT" },
-      ],
+      voteAdress: ballotAdressKoven,
+      proposals,
     };
   },
-  created () {
-      const web3 = this.$store.state.web3;
-      web3.eth.net.getNetworkType().then((type) => {
-        this.neturl = 'https://'+type+'.etherscan.io/';
-      })
+  created() {
+    const web3 = this.$store.state.web3;
+    if (web3) {
+      web3.eth.net
+        .getNetworkType()
+        .then((type) => {
+          this.neturl = "https://" + type + ".etherscan.io/";
+        })
+        .catch(console.error);
+    }else{
+      this.neturl = "https://etherscan.io/";
+    }
   },
   methods: {
     vote: async function (userVote) {
-      if (!this.$store.state.web3){
-        return; 
+      if (!this.$store.state.web3) {
+        return;
       }
 
       const web3 = this.$store.state.web3;
@@ -82,10 +84,7 @@ export default {
       console.log("id : " + userVote.id);
 
       const accounts = await web3.eth.getAccounts();
-      const ballot = new web3.eth.Contract(
-        ballotAbi,
-        ballotAdressKoven
-      );
+      const ballot = new web3.eth.Contract(ballotAbi, ballotAdressKoven);
 
       if (accounts?.length) {
         this.voted = userVote;
@@ -95,7 +94,7 @@ export default {
           .on("transactionHash", (hash) => {
             console.log(hash);
             this.hash = hash;
-            this.hashurl +=hash
+            this.hashurl += hash;
           })
           .on("error", console.error);
       }
