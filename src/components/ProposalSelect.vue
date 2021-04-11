@@ -3,7 +3,7 @@
     <div class="card">
       <div class="card-body">
         The voting smartcontract address:
-        <a v-bind:href="neturl + 'address/' + voteAdress">{{ voteAdress }}</a>
+        <a v-bind:href="neturl + 'address/' + ballotAdress">{{ ballotAdress }}</a>
       </div>
     </div>
     <p />
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { ballotAbi, ballotAdressKoven, ballotAdressMainnet } from "../smartcontractAbi";
+import { ballotAbi, ballotAdressKovan, ballotAdressMainnet } from "../smartcontractAbi";
 import proposals from "../proposals";
 
 const defaultSelect = { id: 0, name: "Choose proposal ..." };
@@ -56,15 +56,17 @@ export default {
       voted: undefined,
       hash: undefined,
       neturl: undefined,
-      voteAdress: ballotAdressKoven,
+      ballotAdress: undefined,
       proposals,
     };
   },
   created() {
     if ('kovan'===process.env.VUE_APP_USENET){
       this.neturl = "https://kovan.etherscan.io/";
+      this.ballotAdress = ballotAdressKovan;
     }else{
       this.neturl = "https://etherscan.io/";
+      this.ballotAdress = ballotAdressMainnet;
     }
   },
   methods: {
@@ -79,8 +81,7 @@ export default {
 
       const accounts = await web3.eth.getAccounts();
       
-      const ballotAdress = process.env.VUE_APP_USENET === 'kovan' ? ballotAdressKoven : ballotAdressMainnet
-      const ballot = new web3.eth.Contract(ballotAbi, ballotAdress);
+      const ballot = new web3.eth.Contract(ballotAbi, this.ballotAdress);
 
       if (accounts?.length) {
         this.voted = userVote;
