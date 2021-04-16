@@ -8,7 +8,8 @@
     </div>
     <p />
     <label for="voteSelect">
-      You can vote only once, choose the proposal which you want to support
+      <p> Choose the proposal which you want to support </p>
+      You can vote multiple time, only the last choice will be considered. 
     </label>
 
     <div id="voteSelect" class="input-group">
